@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { Account, Client } from "node-appwrite"; // For ServerSide Appwrite
-import conf from "./conf/conf";
 import { Constants } from "./conf/constants";
 
 const isRouteProtected = (path: string) => {
@@ -19,57 +17,40 @@ const isRouteProtected = (path: string) => {
     return isProtected;
 };
 
-export const verifyToken = async (jwt: string) => {
-    const client = new Client();
-    client.setEndpoint(conf.appwriteUrl).setProject(conf.appwriteProjectId).setJWT(jwt);
-    const account = new Account(client);
-    try {
-        const userData = await account.get();
-        console.log({ userData });
-        return userData;
-    } catch (e) {
-        return null;
-    }
-};
-
 export async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
 
-    const homeRedirectUrl = new URL(req.nextUrl);
+    const homeRedirectUrl = new URL("/", req.nextUrl);
     const loginRedirectUrl = new URL("/auth/login", req.nextUrl);
 
-    const unsetAuthResponse = () => {
-        const res = NextResponse.redirect(loginRedirectUrl);
+    const unsetAuthResponse = (redirect: boolean = true) => {
+        const res = redirect ? NextResponse.redirect(loginRedirectUrl) : NextResponse.next();
         res.cookies.delete(Constants.AUTH_TOKEN_NAME);
         res.cookies.delete(Constants.JWT_TOKEN);
         return res;
     };
 
-    const { value: xAuthToken } = req.cookies.get(Constants.AUTH_TOKEN_NAME) || { value: null };
+    const xAuthToken = req.cookies.get(Constants.AUTH_TOKEN_NAME)?.value || null;
 
-    if ((xAuthToken && !(await verifyToken(xAuthToken))) || path === "/logout") return unsetAuthResponse();
+    if (path === "/logout") return unsetAuthResponse(false);
 
     if (path.startsWith("/auth") && xAuthToken) return NextResponse.redirect(homeRedirectUrl);
 
     if (req.cookies.has(Constants.JWT_TOKEN)) {
-        const jwt = req.cookies.get(Constants.JWT_TOKEN)?.value || "";
-
-        const isVerified = await verifyToken(jwt);
-
-        if (!isVerified) return unsetAuthResponse();
+        const jwt = req.cookies.get(Constants.JWT_TOKEN)?.value as string;
 
         const res = NextResponse.next();
-        // res.cookies.delete(Constants.JWT_TOKEN);
+        res.cookies.delete(Constants.JWT_TOKEN);
         res.cookies.set({
             name: Constants.AUTH_TOKEN_NAME,
             value: jwt,
-            expires: Date.now() + 86400,
+            expires: Date.now() + 1000 * 60 * 15, // 15 minutes as default set from appwrite
+            secure: true,
+            httpOnly: true,
         });
 
         return res;
-    } else if (isRouteProtected(path)) {
-        if (!xAuthToken) return NextResponse.redirect(loginRedirectUrl);
-    }
+    } else if (isRouteProtected(path) && !xAuthToken) return unsetAuthResponse();
 
     return NextResponse.next();
 }
