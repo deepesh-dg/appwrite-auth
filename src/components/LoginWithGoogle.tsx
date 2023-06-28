@@ -1,8 +1,4 @@
-"use client";
-import { account } from "@/appwrite/config";
-import { Constants } from "@/conf/constants";
-import { setCookie } from "cookies-next";
-import { useRouter } from "next/navigation";
+import appwriteService from "@/appwrite/service.client";
 import React from "react";
 
 type Props = {
@@ -10,27 +6,11 @@ type Props = {
 };
 
 const LoginWithGoogle: React.FC<Props> = ({ type = "login" }) => {
-    const router = useRouter();
-
-    const loginWithGoogle = async () => {
-        const url = account.createOAuth2Session(
-            "google",
-            new URL("/profile", window.location.href).href,
-            new URL("/auth/login", window.location.href).href
-        );
-
-        try {
-            const { jwt } = await account.createJWT();
-            setCookie(Constants.JWT_TOKEN, jwt);
-            router.push("/profile");
-        } catch (error) {}
-    };
-
     return (
         <button
             type="button"
             className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
-            onClick={loginWithGoogle}
+            onClick={() => appwriteService.loginWithGoogle()}
         >
             <span className="mr-2 inline-block">
                 <svg

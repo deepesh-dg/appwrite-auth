@@ -39,7 +39,7 @@ export async function middleware(req: NextRequest) {
     if (req.cookies.has(Constants.JWT_TOKEN)) {
         const jwt = req.cookies.get(Constants.JWT_TOKEN)?.value as string;
 
-        const res = NextResponse.next();
+        const res = NextResponse.redirect(homeRedirectUrl);
         res.cookies.delete(Constants.JWT_TOKEN);
         res.cookies.set({
             name: Constants.AUTH_TOKEN_NAME,
@@ -50,7 +50,9 @@ export async function middleware(req: NextRequest) {
         });
 
         return res;
-    } else if (isRouteProtected(path) && !xAuthToken) return unsetAuthResponse();
+    }
+
+    if (isRouteProtected(path) && !xAuthToken) return unsetAuthResponse();
 
     return NextResponse.next();
 }

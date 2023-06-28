@@ -1,8 +1,7 @@
 "use client";
-import { account } from "@/appwrite/config";
+import appwriteService from "@/appwrite/service.client";
 import LoginWithGoogle from "@/components/LoginWithGoogle";
 import { ResponseError } from "@/interfaces/Response";
-import { ID } from "appwrite";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -27,7 +26,11 @@ export default function SignUpThree() {
         };
 
         try {
-            const userData = await account.create(ID.unique(), data.email, data.password, data.fullname);
+            const userData = await appwriteService.createAccount({
+                email: data.email,
+                password: data.password,
+                name: data.fullname,
+            });
             setFormStates((prev) => ({ ...prev, error: null }));
             if (userData) {
                 router.push("/auth/login");

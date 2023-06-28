@@ -1,9 +1,7 @@
 "use client";
-import { account } from "@/appwrite/config";
+import appwriteService from "@/appwrite/service.client";
 import LoginWithGoogle from "@/components/LoginWithGoogle";
-import { Constants } from "@/conf/constants";
 import { ResponseError } from "@/interfaces/Response";
-import { setCookie } from "cookies-next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -27,13 +25,9 @@ export default function Login() {
         };
 
         try {
-            const userSession = await account.createEmailSession(data.email, data.password);
+            await appwriteService.login({ email: data.email, password: data.password });
             setFormStates((prev) => ({ ...prev, error: null }));
-            if (userSession) {
-                const { jwt } = await account.createJWT();
-                setCookie(Constants.JWT_TOKEN, jwt);
-                router.push("/profile");
-            }
+            router.push("/profile");
         } catch (e: any) {
             const error: ResponseError = e;
             setFormStates((prev) => ({ ...prev, error: error.message }));
