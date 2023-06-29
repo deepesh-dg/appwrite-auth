@@ -1,5 +1,5 @@
 "use client";
-import appwriteService from "@/appwrite/service.client";
+import appwriteService from "@/appwrite/config";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
@@ -8,11 +8,11 @@ const Logout = () => {
 
     useEffect(() => {
         appwriteService.logout().then(() => {
-            router.push("/auth/login");
+            router.push("/login");
         });
-    }, [router]);
+    }, []);
 
-    return <></>;
+    return <div>Logout</div>;
 };
 
 export default Logout;

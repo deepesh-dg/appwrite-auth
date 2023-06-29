@@ -1,52 +1,45 @@
 "use client";
-import appwriteService from "@/appwrite/service.client";
-import LoginWithGoogle from "@/components/LoginWithGoogle";
-import { ResponseError } from "@/interfaces/Response";
+import appwriteService from "@/appwrite/config";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 
-export default function SignUpThree() {
+const Signup = () => {
     const router = useRouter();
-
-    const [formStates, setFormStates] = useState<{ loader: boolean; error: string | null }>({
-        loader: false,
-        error: null,
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        password: "",
     });
 
-    const create = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setFormStates((prev) => ({ ...prev, loader: true, error: null }));
-        const formData = new FormData(e.currentTarget);
+    const [error, setError] = useState("");
 
-        const data = {
-            fullname: String(formData.get("fullname")),
-            email: String(formData.get("email")),
-            password: String(formData.get("password")),
-        };
+    const create = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
 
         try {
-            const userData = await appwriteService.createAccount({
-                email: data.email,
-                password: data.password,
-                name: data.fullname,
-            });
-            setFormStates((prev) => ({ ...prev, error: null }));
+            const userData = await appwriteService.createAccount(formData);
             if (userData) {
-                router.push("/auth/login");
+                router.push("/profile");
             }
         } catch (e: any) {
-            const error: ResponseError = e;
-            setFormStates((prev) => ({ ...prev, error: error.message }));
+            setError(e.message);
         }
-
-        setFormStates((prev) => ({ ...prev, loader: true }));
     };
+
+    useEffect(() => {
+        (async () => {
+            const userData = await appwriteService.getCurrentUser();
+            if (userData) {
+                router.push("/profile");
+            }
+        })();
+    }, []);
 
     return (
         <section>
             <div className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
-                <div className="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md">
+                <div className={`xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md`}>
                     <div className="mb-2 flex justify-center">
                         <svg
                             width="50"
@@ -67,13 +60,13 @@ export default function SignUpThree() {
                     <p className="mt-2 text-center text-base text-gray-600">
                         Already have an account?&nbsp;
                         <Link
-                            href="/auth/login"
+                            href="/login"
                             className="font-medium text-black transition-all duration-200 hover:underline"
                         >
                             Sign In
                         </Link>
                     </p>
-                    {formStates.error && <p className="text-red-600 mt-8 text-center">{formStates.error}</p>}
+                    {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
                     <form onSubmit={create} className="mt-8">
                         <div className="space-y-5">
                             <div>
@@ -86,7 +79,10 @@ export default function SignUpThree() {
                                         type="text"
                                         placeholder="Full Name"
                                         id="name"
-                                        name="fullname"
+                                        value={formData.name}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({ ...prev, name: e.target.value }))
+                                        }
                                         required
                                     />
                                 </div>
@@ -99,7 +95,10 @@ export default function SignUpThree() {
                                     <input
                                         className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
                                         type="email"
-                                        name="email"
+                                        value={formData.email}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({ ...prev, email: e.target.value }))
+                                        }
                                         placeholder="Email"
                                         id="email"
                                         required
@@ -117,7 +116,13 @@ export default function SignUpThree() {
                                         className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
                                         type="password"
                                         placeholder="Password"
-                                        name="password"
+                                        value={formData.password}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                password: e.target.value,
+                                            }))
+                                        }
                                         id="password"
                                         required
                                     />
@@ -133,11 +138,10 @@ export default function SignUpThree() {
                             </div>
                         </div>
                     </form>
-                    <div className="mt-3 space-y-3">
-                        <LoginWithGoogle type="signup" />
-                    </div>
                 </div>
             </div>
         </section>
     );
-}
+};
+
+export default Signup;

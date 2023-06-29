@@ -1,14 +1,23 @@
-import AppwriteService from "@/appwrite/service.server";
-import { cookies } from "next/headers";
-import React from "react";
+"use client";
+import appwriteService from "@/appwrite/config";
+import { Models } from "appwrite";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
-const Profile = async () => {
-    const appwriteService = new AppwriteService(cookies());
-    const userData = await appwriteService.getCurrentUser();
+const Profile = () => {
+    const router = useRouter();
+    const [data, setData] = useState<Models.User<Models.Preferences> | null>(null);
 
-    if (!userData) return <div>No user</div>;
+    useEffect(() => {
+        (async () => {
+            const userData = await appwriteService.getCurrentUser();
+            if (userData) {
+                setData(userData);
+            } else router.push("/login");
+        })();
+    }, []);
 
-    return <div>{userData.email}</div>;
+    return <div>{data?.email}</div>;
 };
 
 export default Profile;
