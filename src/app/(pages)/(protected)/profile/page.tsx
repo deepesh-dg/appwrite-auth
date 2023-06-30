@@ -1,11 +1,9 @@
 "use client";
 import appwriteService from "@/appwrite/config";
 import { Models } from "appwrite";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const Profile = () => {
-    const router = useRouter();
     const [data, setData] = useState<Models.User<Models.Preferences> | null>(null);
 
     useEffect(() => {
@@ -13,7 +11,7 @@ const Profile = () => {
             const userData = await appwriteService.getCurrentUser();
             if (userData) {
                 setData(userData);
-            } else router.push("/login");
+            }
         })();
     }, []);
 

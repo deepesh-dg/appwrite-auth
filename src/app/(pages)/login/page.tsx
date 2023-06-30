@@ -1,25 +1,28 @@
 "use client";
 import appwriteService from "@/appwrite/config";
+import useAuth from "@/contexts/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useState } from "react";
 
-const Signup = () => {
+const Login = () => {
     const router = useRouter();
     const [formData, setFormData] = useState({
-        name: "",
         email: "",
         password: "",
     });
 
     const [error, setError] = useState("");
 
-    const create = async (e: FormEvent<HTMLFormElement>) => {
+    const { authStatus, setAuthStatus } = useAuth();
+
+    const login = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         try {
-            const userData = await appwriteService.createAccount(formData);
-            if (userData) {
+            const session = await appwriteService.login(formData);
+            if (session) {
+                setAuthStatus(true);
                 router.push("/profile");
             }
         } catch (e: any) {
@@ -27,14 +30,10 @@ const Signup = () => {
         }
     };
 
-    useEffect(() => {
-        (async () => {
-            const userData = await appwriteService.getCurrentUser();
-            if (userData) {
-                router.push("/profile");
-            }
-        })();
-    }, []);
+    if (authStatus) {
+        router.replace("/profile");
+        return <></>;
+    }
 
     return (
         <section>
@@ -55,38 +54,20 @@ const Signup = () => {
                         </svg>
                     </div>
                     <h2 className="text-center text-2xl font-bold leading-tight text-black">
-                        Sign up to create account
+                        Sign in to your account
                     </h2>
                     <p className="mt-2 text-center text-base text-gray-600">
-                        Already have an account?&nbsp;
+                        Don&apos;t have any account?&nbsp;
                         <Link
                             href="/login"
                             className="font-medium text-black transition-all duration-200 hover:underline"
                         >
-                            Sign In
+                            Sign Up
                         </Link>
                     </p>
                     {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
-                    <form onSubmit={create} className="mt-8">
+                    <form onSubmit={login} className="mt-8">
                         <div className="space-y-5">
-                            <div>
-                                <label htmlFor="name" className="text-base font-medium text-gray-900">
-                                    Full Name
-                                </label>
-                                <div className="mt-2">
-                                    <input
-                                        className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                                        type="text"
-                                        placeholder="Full Name"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({ ...prev, name: e.target.value }))
-                                        }
-                                        required
-                                    />
-                                </div>
-                            </div>
                             <div>
                                 <label htmlFor="email" className="text-base font-medium text-gray-900">
                                     Email address
@@ -133,7 +114,7 @@ const Signup = () => {
                                     type="submit"
                                     className="inline-flex w-full items-center justify-center rounded-md bg-black px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80"
                                 >
-                                    Create Account
+                                    Sign in
                                 </button>
                             </div>
                         </div>
@@ -144,4 +125,4 @@ const Signup = () => {
     );
 };
 
-export default Signup;
+export default Login;

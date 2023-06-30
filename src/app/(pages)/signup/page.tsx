@@ -1,39 +1,40 @@
 "use client";
 import appwriteService from "@/appwrite/config";
+import useAuth from "@/contexts/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useState } from "react";
 
-const Login = () => {
+const Signup = () => {
     const router = useRouter();
     const [formData, setFormData] = useState({
+        name: "",
         email: "",
         password: "",
     });
 
     const [error, setError] = useState("");
 
+    const { authStatus, setAuthStatus } = useAuth();
+
+    if (authStatus) {
+        router.replace("/profile");
+        return <></>;
+    }
+
     const create = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         try {
-            const session = await appwriteService.login(formData);
-            if (session) {
+            const userData = await appwriteService.createAccount(formData);
+            if (userData) {
+                setAuthStatus(true);
                 router.push("/profile");
             }
         } catch (e: any) {
             setError(e.message);
         }
     };
-
-    useEffect(() => {
-        (async () => {
-            const userData = await appwriteService.getCurrentUser();
-            if (userData) {
-                router.push("/profile");
-            }
-        })();
-    }, []);
 
     return (
         <section>
@@ -54,20 +55,38 @@ const Login = () => {
                         </svg>
                     </div>
                     <h2 className="text-center text-2xl font-bold leading-tight text-black">
-                        Sign in to your account
+                        Sign up to create account
                     </h2>
                     <p className="mt-2 text-center text-base text-gray-600">
-                        Don&apos;t have any account?&nbsp;
+                        Already have an account?&nbsp;
                         <Link
                             href="/login"
                             className="font-medium text-black transition-all duration-200 hover:underline"
                         >
-                            Sign Up
+                            Sign In
                         </Link>
                     </p>
                     {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
                     <form onSubmit={create} className="mt-8">
                         <div className="space-y-5">
+                            <div>
+                                <label htmlFor="name" className="text-base font-medium text-gray-900">
+                                    Full Name
+                                </label>
+                                <div className="mt-2">
+                                    <input
+                                        className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                                        type="text"
+                                        placeholder="Full Name"
+                                        id="name"
+                                        value={formData.name}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({ ...prev, name: e.target.value }))
+                                        }
+                                        required
+                                    />
+                                </div>
+                            </div>
                             <div>
                                 <label htmlFor="email" className="text-base font-medium text-gray-900">
                                     Email address
@@ -114,7 +133,7 @@ const Login = () => {
                                     type="submit"
                                     className="inline-flex w-full items-center justify-center rounded-md bg-black px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80"
                                 >
-                                    Sign in
+                                    Create Account
                                 </button>
                             </div>
                         </div>
@@ -125,4 +144,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Signup;

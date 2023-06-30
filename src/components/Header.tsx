@@ -1,3 +1,5 @@
+"use client";
+import useAuth from "@/contexts/useAuth";
 import Link from "next/link";
 import React from "react";
 
@@ -17,6 +19,7 @@ const menuItems = [
 ];
 
 export default function Header() {
+    const { authStatus } = useAuth();
     return (
         <div className="relative w-full bg-white">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
@@ -55,16 +58,16 @@ export default function Header() {
                 </div>
                 <div className="hidden space-x-2 lg:block">
                     <Link
-                        href={false ? "/profile" : "/signup"}
+                        href={authStatus ? "/profile" : "/signup"}
                         className="rounded-md bg-transparent px-3 py-2 text-sm font-semibold text-black hover:bg-black/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                     >
-                        {false ? "Profile" : "Sign up"}
+                        {authStatus ? "Profile" : "Sign up"}
                     </Link>
                     <Link
-                        href={false ? "/logout" : "/login"}
+                        href={authStatus ? "/logout" : "/login"}
                         className="rounded-md border border-black px-3 py-2 text-sm font-semibold text-black shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                     >
-                        {false ? "Logout" : "Log In"}
+                        {authStatus ? "Logout" : "Log In"}
                     </Link>
                 </div>
             </div>
