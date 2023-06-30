@@ -1,22 +1,8 @@
-"use client";
-import appwriteService from "@/appwrite/config";
 import ProfileCard from "@/components/ProfileCard";
-import { Models } from "appwrite";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 const Profile = () => {
-    const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
-
-    useEffect(() => {
-        (async () => {
-            const userData = await appwriteService.getCurrentUser();
-            if (userData) {
-                setUser(userData);
-            }
-        })();
-    }, []);
-
     return (
         <div className="w-full max-w-xl mx-auto py-8 flex flex-wrap gap-y-6">
             <h1 className=" w-full flex items-center gap-x-4">
@@ -27,7 +13,7 @@ const Profile = () => {
                 </Link>
                 <span className="text-3xl font-bold">My Account</span>
             </h1>
-            {user && <ProfileCard user={user} />}
+            <ProfileCard />
         </div>
     );
 };
