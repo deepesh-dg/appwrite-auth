@@ -15,7 +15,7 @@ const Logout = () => {
         });
     }, []);
 
-    return <div>Logout</div>;
+    return <></>;
 };
 
 export default Logout;
